@@ -9,7 +9,35 @@ from rest_framework import status
 
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
+
 class RegistrationView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    @swagger_auto_schema(
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'email': openapi.Schema(type=openapi.TYPE_STRING, example="salah1@gmail1.com"),
+                'first_name': openapi.Schema(type=openapi.TYPE_STRING, example="salah"),
+                'last_name': openapi.Schema(type=openapi.TYPE_STRING, example="uddin"),
+                'password': openapi.Schema(type=openapi.TYPE_STRING, example="123"),
+                'confirm_password': openapi.Schema(type=openapi.TYPE_STRING, example="123"),
+            },
+            required=['email', 'first_name', 'last_name', 'password', 'confirm_password'],
+        ),
+        responses={201: openapi.Response(
+            description="Registration successful",
+            examples={
+                "application/json": {
+                    "email": "salah1@gmail1.com",
+                    "first_name": "salah",
+                    "last_name": "uddin"
+                }
+            }
+        )}
+    )
     def post(self,request):
         serializer=RegistrationSerializer(data=request.data)
         if serializer.is_valid():
@@ -25,6 +53,22 @@ class UserProfileView(APIView):
     def get_profile(self, user):
         return getattr(user, 'profile', None)
 
+    @swagger_auto_schema(
+        operation_description="Get user profile.\n\n**Requires Bearer token in Authorization header.**",
+        responses={200: openapi.Response(
+            description="Profile data",
+            examples={
+                "application/json": {
+                    "id": 3,
+                    "name": "SALAH UDDIN bro",
+                    "phone_number": "01806779324",
+                    "avatar": "http://127.0.0.1:8000/media/avatars/Screenshot_from_2026-01-29_12-05-14.png",
+                    "address": "Dhaka Bangladesh (present now) 1"
+                }
+            }
+        )},
+        security=[{'Bearer': []}]
+    )
     def get(self, request):
         profile = self.get_profile(request.user)
         if not profile:
@@ -34,6 +78,31 @@ class UserProfileView(APIView):
         data = serializer.data
         return Response(data)
 
+    @swagger_auto_schema(
+        operation_description="Update user profile.\n\n**Requires Bearer token in Authorization header.**",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'name': openapi.Schema(type=openapi.TYPE_STRING, example="SALAH UDDIN bro"),
+                'phone_number': openapi.Schema(type=openapi.TYPE_STRING, example="01806779324"),
+                'avatar': openapi.Schema(type=openapi.TYPE_STRING, format='binary'),
+                'address': openapi.Schema(type=openapi.TYPE_STRING, example="Dhaka Bangladesh (present now) 1"),
+            },
+        ),
+        responses={200: openapi.Response(
+            description="Profile updated",
+            examples={
+                "application/json": {
+                    "id": 3,
+                    "name": "SALAH UDDIN bro",
+                    "phone_number": "01806779324",
+                    "avatar": "http://127.0.0.1:8000/media/avatars/Screenshot_from_2026-01-29_14-33-39.png",
+                    "address": "Dhaka Bangladesh (present now) 1"
+                }
+            }
+        )},
+        security=[{'Bearer': []}]
+    )
     def patch(self, request):
         profile = self.get_profile(request.user)
         if not profile:
@@ -47,6 +116,33 @@ class UserProfileView(APIView):
 
 
 class LoginView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    @swagger_auto_schema(
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'email': openapi.Schema(type=openapi.TYPE_STRING, example="salah1@gmail1.com"),
+                'password': openapi.Schema(type=openapi.TYPE_STRING, example="123"),
+            },
+            required=['email', 'password'],
+        ),
+        responses={200: openapi.Response(
+            description="Login successful",
+            examples={
+                "application/json": {
+                    "refresh": "refresh_token_here",
+                    "access": "access_token_here",
+                    "user_data": {
+                        "id": 3,
+                        "email": "salah1@gmail1.com",
+                        "first_name": "salah",
+                        "last_name": "uddin"
+                    }
+                }
+            }
+        )}
+    )
     def post(self,request):
         serializer=LoginSerializer(data=request.data)
         if serializer.is_valid():
@@ -73,11 +169,28 @@ class LoginView(APIView):
 class LogoutView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
+    @swagger_auto_schema(
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'refresh': openapi.Schema(type=openapi.TYPE_STRING, example="refresh_token_here"),
+            },
+            required=['refresh'],
+        ),
+        operation_description="Logout user (blacklist refresh token).\n\n**Requires Bearer token in Authorization header.**",
+        responses={200: openapi.Response(
+            description="Logout successful",
+            examples={
+                "application/json": {"detail": "Successfully logged out."}
+            }
+        )},
+        security=[{'Bearer': []}]
+    )
     def post(self, request):
         try:
             refresh_token = request.data.get('refresh')
             token = RefreshToken(refresh_token)
             token.blacklist()
-            return Response({"detail": "Logout successful"}, status=status.HTTP_205_RESET_CONTENT)
+            return Response({"detail": "Successfully logged out."}, status=status.HTTP_200_OK)
         except Exception as e:
-            return Response({"detail": "Invalid token"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
