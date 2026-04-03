@@ -1,5 +1,3 @@
-
-
 from django.shortcuts import render
 from product.tasks import process_product
 from .serializers import ProductSerializer, ProductUpdateSerializer,BatchUploadSerializer
@@ -12,7 +10,7 @@ from rest_framework import permissions
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 from django.core.cache import cache
-from .ulits import get_product_from_cache
+from .utils import get_product_from_cache, log_execution_time
 
 class CustomPagination(PageNumberPagination):
     page_size = 10
@@ -39,6 +37,7 @@ def read_product_names_from_file(file):
         name = product_name.decode('utf-8').strip()
         if name:
             yield name
+
 
 class ProductView(viewsets.ModelViewSet):
     queryset = Product.objects.select_related('user').all()
@@ -67,25 +66,28 @@ class ProductView(viewsets.ModelViewSet):
         return ProductSerializer
         
         
+    @log_execution_time
     def get_queryset(self):
-       user=self.request.user
-       
-       if user.is_superuser:
-           return self.queryset
-       
-       return get_product_from_cache(user)
+        user = self.request.user
+        if user.is_superuser:
+            return self.queryset
+        return get_product_from_cache(user=user)
    
     @action(detail=False, methods=['post'])
     def batch_upload(self, request):
        serializer = BatchUploadSerializer(data=request.data)
        if serializer.is_valid():
+        
            file = serializer.validated_data['file']
            for product_name in read_product_names_from_file(file):
                 product=Product.objects.create(user=request.user, name=product_name)
                 process_product.delay(product.id)
+            
+           delete_cache_key = f"products_user_{request.user.id}"
+           cache.delete(delete_cache_key)
     
            return Response({"message": "Batch upload successful and processing"}, status=status.HTTP_201_CREATED)
        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-   
+
 
 

@@ -1,14 +1,22 @@
 import json
 import os
 import logging
+from time import time
 from django.conf import settings
 from openai import OpenAI
-
+import time
+# from .ulits import log_execution_time
 logger = logging.getLogger(__name__)
+
+
+
+
 client = OpenAI(api_key=settings.OPENAI_API_KEY)        
 
+# @log_execution_time
 def generate_product_description_and_category(name: str) -> dict:
     try:
+        
         prompt = f"""
             Generate:
             1. A catchy 2-sentence marketing description
@@ -22,6 +30,7 @@ def generate_product_description_and_category(name: str) -> dict:
                 "category": "..."
             }}
             """
+        
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[

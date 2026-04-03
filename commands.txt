@@ -5,4 +5,4 @@ redis-server --port 6389
 python manage.py runserver
 
 # Start Celery Worker
-celery -A core worker -l info
+celery -A core worker --loglevel=info --concurrency=4
