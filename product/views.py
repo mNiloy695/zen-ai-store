@@ -1,11 +1,20 @@
 from django.shortcuts import render
 
+import product
 from product.tasks import process_product
-from .serializers import ProductSerializer, ProductUpdateSerializer
+from .serializers import ProductSerializer, ProductUpdateSerializer,BatchUploadSerializer
 from .models import Product
 from rest_framework import viewsets
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
 from rest_framework import permissions
-# Create your views here.
+from rest_framework.decorators import action
+from rest_framework.pagination import PageNumberPagination
+class CustomPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 100
 
 class CustomPermission(permissions.BasePermission):
     def has_permission(self, request, view):
@@ -14,6 +23,17 @@ class CustomPermission(permissions.BasePermission):
         return obj.user == request.user
     
     
+
+
+
+
+#file process with generator
+
+def read_product_names_from_file(file):
+    for product_name in file:
+        name = product_name.decode('utf-8').strip()
+        if name:
+            yield name
 
 class ProductView(viewsets.ModelViewSet):
     queryset = Product.objects.select_related('user').all()
@@ -36,3 +56,18 @@ class ProductView(viewsets.ModelViewSet):
        if user.is_superuser:
            return self.queryset
        return self.queryset.filter(user=user)
+   
+    @action(detail=False, methods=['post'])
+    def batch_upload(self, request):
+       serializer = BatchUploadSerializer(data=request.data)
+       if serializer.is_valid():
+           file = serializer.validated_data['file']
+           for product_name in read_product_names_from_file(file):
+                product=Product.objects.create(user=request.user, name=product_name)
+                process_product.delay(product.id)
+    
+           return Response({"message": "Batch upload successful"}, status=status.HTTP_201_CREATED)
+       return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+   
+
+

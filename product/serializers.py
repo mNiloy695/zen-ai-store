@@ -14,3 +14,14 @@ class ProductUpdateSerializer(serializers.ModelSerializer):
         model = Product
         fields = '__all__'
         read_only_fields = ['id','user']
+        
+
+
+
+class BatchUploadSerializer(serializers.Serializer):
+    file = serializers.FileField()
+
+    def validate_file(self, value):
+        if not value.name.endswith('.txt'):
+            raise serializers.ValidationError("Only .txt files are allowed")
+        return value
