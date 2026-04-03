@@ -42,4 +42,3 @@ class CustomUser(AbstractUser):
         return f'email : {self.email} - name  : {self.first_name} {self.last_name} and id is {self.id}'
     
     
-    
