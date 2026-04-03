@@ -53,3 +53,10 @@ class UserProfileSerializer(serializers.ModelSerializer):
             return request.build_absolute_uri(obj.avatar.url)
         return None
 
+
+class LoginSerializer(serializers.Serializer):
+    email=serializers.EmailField()
+    password=serializers.CharField(write_only=True)
+    
+
+
