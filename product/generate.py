@@ -1,0 +1,55 @@
+import json
+import os
+import logging
+from django.conf import settings
+from openai import AsyncOpenAI
+
+logger = logging.getLogger(__name__)
+client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)        
+
+async def generate_product_description_and_category(name: str) -> str:
+    try:
+        prompt = f"""
+            Generate:
+            1. A catchy 2-sentence marketing description
+            2. A product category
+
+            Product: {name}
+
+            Return in JSON format:
+            {{
+                "description": "...",
+                "category": "..."
+            }}
+            """
+        response = await client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant"},
+                {"role": "user", "content": prompt},
+            ],
+        )
+
+        content = response.choices[0].message.content
+        logger.info(f"Raw AI Response: {content}")
+        
+        # Remove markdown code blocks if present
+        if content.startswith('```'):
+            content = content.split('```')[1]
+            if content.startswith('json'):
+                content = content[4:]
+            content = content.strip()
+        
+        result = json.loads(content)
+
+        return {
+            "description": result.get("description", ""),
+            "category": result.get("category", "General")
+        }
+
+    except Exception as e:
+        logger.error(f"Error generating product data for '{name}': {str(e)}", exc_info=True)
+        return {
+            "description": f"{name} is a high-quality product designed for everyday use. It offers reliability and great value.",
+            "category": "General"
+        }

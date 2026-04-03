@@ -161,7 +161,15 @@ SIMPLE_JWT = {
     "REVOKE_TOKEN_CLAIM": "hash_password",
     "CHECK_USER_IS_ACTIVE": True,
 }
+OPENAI_API_KEY=config('OPENAI_API_KEY')
+#CELERY SETTINGS
+# Redis (Broker)
+CELERY_BROKER_URL =config('CELERY_BROKER_URL', default='redis://localhost:6379/0')
 
+# # Optional: store results
+# CELERY_RESULT_BACKEND = 'django-db'
+
+# INSTALLED_APPS += ['django_celery_results']
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
