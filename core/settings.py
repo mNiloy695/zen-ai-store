@@ -41,6 +41,9 @@ INSTALLED_APPS = [
     'rest_framework',
     'accounts',
     'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
+    'product',
+    'drf_yasg',
 ]
 
 MIDDLEWARE = [
@@ -113,7 +116,6 @@ REST_FRAMEWORK = {
 }
 
 from datetime import timedelta
-...
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(days=2), 
@@ -160,10 +162,22 @@ SIMPLE_JWT = {
     "REVOKE_TOKEN_CLAIM": "hash_password",
     "CHECK_USER_IS_ACTIVE": True,
 }
+OPENAI_API_KEY=config('OPENAI_API_KEY')
+#CELERY SETTINGS
+# Redis (Broker)
+CELERY_BROKER_URL =config('CELERY_BROKER_URL', default='redis://localhost:6379/0')
 
+#Cache 
 
-# Internationalization
-# https://docs.djangoproject.com/en/4.2/topics/i18n/
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
+}
 
 LANGUAGE_CODE = 'en-us'
 

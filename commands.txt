@@ -1,0 +1,8 @@
+# Start Redis
+redis-server --port 6389
+
+# Start Django
+python manage.py runserver
+
+# Start Celery Worker
+celery -A core worker --loglevel=info --concurrency=4

@@ -1,0 +1,27 @@
+from .models import Product
+from rest_framework import serializers
+
+
+class ProductSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Product
+        fields = '__all__'
+        read_only_fields = ['id','user','description','category']
+
+
+class ProductUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Product
+        fields = '__all__'
+        read_only_fields = ['id','user']
+        
+
+
+
+class BatchUploadSerializer(serializers.Serializer):
+    file = serializers.FileField()
+
+    def validate_file(self, value):
+        if not value.name.endswith('.txt'):
+            raise serializers.ValidationError("Only .txt files are allowed")
+        return value
