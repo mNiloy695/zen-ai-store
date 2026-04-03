@@ -2,12 +2,12 @@ import json
 import os
 import logging
 from django.conf import settings
-from openai import AsyncOpenAI
+from openai import OpenAI
 
 logger = logging.getLogger(__name__)
-client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)        
+client = OpenAI(api_key=settings.OPENAI_API_KEY)        
 
-async def generate_product_description_and_category(name: str) -> str:
+def generate_product_description_and_category(name: str) -> dict:
     try:
         prompt = f"""
             Generate:
@@ -22,7 +22,7 @@ async def generate_product_description_and_category(name: str) -> str:
                 "category": "..."
             }}
             """
-        response = await client.chat.completions.create(
+        response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": "You are a helpful assistant"},

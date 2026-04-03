@@ -1,7 +1,7 @@
 from django.shortcuts import render
 
 from product.tasks import process_product
-from .serializers import ProductSerializer
+from .serializers import ProductSerializer, ProductUpdateSerializer
 from .models import Product
 from rest_framework import viewsets
 from rest_framework import permissions
@@ -23,6 +23,12 @@ class ProductView(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         product=serializer.save(user=self.request.user)
         process_product.delay(product.id)
+        
+    
+    def get_serializer_class(self):
+        if self.action in ['update', 'partial_update']:
+            return ProductUpdateSerializer
+        return ProductSerializer
         
         
     def get_queryset(self):
