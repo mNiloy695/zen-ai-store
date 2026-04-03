@@ -41,6 +41,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'accounts',
     'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
+    'product',
 ]
 
 MIDDLEWARE = [
@@ -113,7 +115,6 @@ REST_FRAMEWORK = {
 }
 
 from datetime import timedelta
-...
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(days=2), 

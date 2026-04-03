@@ -41,17 +41,12 @@ class RegistrationSerializer(serializers.ModelSerializer):
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
-    avatar_url=serializers.SerializerMethodField()
+   
     
     class Meta:
         model=UserProfile
-        fields=['id','name','phone_number','avatar','avatar_url']
+        fields=['id','name','phone_number','avatar','address']
         
-    def get_avatar_url(self, obj):
-        request = self.context.get('request')
-        if obj.avatar and request:
-            return request.build_absolute_uri(obj.avatar.url)
-        return None
 
 
 class LoginSerializer(serializers.Serializer):
