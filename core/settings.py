@@ -166,13 +166,17 @@ OPENAI_API_KEY=config('OPENAI_API_KEY')
 # Redis (Broker)
 CELERY_BROKER_URL =config('CELERY_BROKER_URL', default='redis://localhost:6379/0')
 
-# # Optional: store results
-# CELERY_RESULT_BACKEND = 'django-db'
+#Cache 
 
-# INSTALLED_APPS += ['django_celery_results']
-
-# Internationalization
-# https://docs.djangoproject.com/en/4.2/topics/i18n/
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
+}
 
 LANGUAGE_CODE = 'en-us'
 
