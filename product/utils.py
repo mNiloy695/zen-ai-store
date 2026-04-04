@@ -21,11 +21,11 @@ def get_product_from_cache(user):
     product_ids = cache.get(cache_key)
     if product_ids is None:
         product_ids = list(
-            Product.objects.filter(user=user)
-            .values_list('id', flat=True)
+            Product.objects.filter(user=user).values_list('id', flat=True)
         )
         cache.set(cache_key, product_ids, timeout=300)
     if product_ids:
         return Product.objects.filter(id__in=product_ids).select_related('user')
     else:
         return Product.objects.none()
+

@@ -27,11 +27,6 @@ class CustomPermission(permissions.BasePermission):
         return obj.user == request.user
     
     
-#file process with generator
-
-
-
-
 
 #read product names from file with generator
 def read_product_names_from_file(file):
@@ -116,6 +111,5 @@ class ProductView(viewsets.ModelViewSet):
         if user.is_superuser:
             return self.queryset
         return get_product_from_cache(user=user)
-
 
 
